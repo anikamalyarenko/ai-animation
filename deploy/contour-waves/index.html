@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contour Wave Lines</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 340px;
+    height: 431px;
+    overflow: hidden;
+    background: #FBFBFA;
+  }
+  #canvas-wrap {
+    position: relative;
+    width: 340px;
+    height: 431px;
+    overflow: hidden;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvas-wrap');
+const ACCENT = "67, 56, 224"; // #4338E0
+
+let W, H, dpr;
+function resize(){
+  dpr = window.devicePixelRatio || 1;
+  W = wrap.clientWidth;
+  H = wrap.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Курсор реагує тільки коли миша над елементом.
+// Поза наведенням хвилі лишаються у стані спокою (без mouseInfluence).
+let isHovering = false;
+let targetX = 0.5, targetY = 0.5;
+let mx = 0.5, my = 0.5;
+
+wrap.addEventListener('mouseenter', ()=>{ isHovering = true; });
+wrap.addEventListener('mousemove', (e)=>{
+  const rect = wrap.getBoundingClientRect();
+  targetX = (e.clientX - rect.left) / rect.width;
+  targetY = (e.clientY - rect.top) / rect.height;
+});
+wrap.addEventListener('mouseleave', ()=>{
+  isHovering = false;
+  targetX = 0.5;
+  targetY = 0.5;
+});
+
+const LINES = 42;
+const POINTS = 80;
+let t = 0;
+
+function draw(){
+  t += 0.004;
+  mx += (targetX - mx) * 0.04;
+  my += (targetY - my) * 0.04;
+
+  ctx.clearRect(0,0,W,H);
+
+  for(let i=0;i<LINES;i++){
+    const rowT = i / (LINES-1);
+    const baseY = rowT * H;
+
+    ctx.beginPath();
+    for(let j=0;j<=POINTS;j++){
+      const colT = j / POINTS;
+      const x = colT * W;
+
+      const peak1 = Math.sin(colT*Math.PI*1.3 + 0.4) * H*0.16;
+      const peak2 = Math.sin(colT*Math.PI*2.6 + 2.1 + t) * H*0.09;
+
+      // mouseInfluence діє тільки коли курсор фізично над елементом
+      const mouseInfluence = isHovering
+        ? Math.exp(-Math.pow((colT-mx)*3.2,2)) * (0.5-my) * H*0.28
+        : 0;
+
+      const y = baseY + peak1 + peak2 + mouseInfluence*(1-rowT*0.3);
+
+      if(j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+
+    const opacity = 0.12 + Math.pow(rowT, 1.4) * 0.55;
+    ctx.strokeStyle = `rgba(${ACCENT}, ${opacity})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+
+</body>
+</html>

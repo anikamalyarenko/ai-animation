@@ -1,0 +1,196 @@
+/**
+ * The component paints no background of its own, so it sits on whatever the
+ * host page provides. Four custom properties control everything:
+ *
+ *   --pf-accent      everything the scroll has activated: filled nodes, the
+ *                    connector being drawn, its leading dot and particles
+ *   --pf-on-accent   label inside a filled node
+ *   --pf-line        connectors and node outlines not yet reached
+ *   --pf-label       label of a node not yet filled
+ *
+ * States are explicit colours rather than one colour at varying opacity, so
+ * each of the four can be set independently to match a palette.
+ *
+ * The defaults are a light-page palette. #4338e0 carries about 7.3:1 against
+ * white — the fill alone defines a filled pill's edge, with no outline needed.
+ */
+.pf-section,
+.pf-section.pf-theme-light {
+  --pf-accent: #4338e0;
+  --pf-on-accent: #ffffff;
+  --pf-line: #e0dfeb;
+  --pf-label: #75757f;
+  --pf-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  position: relative;
+  background: transparent;
+}
+
+/* Structure only. #4338e0 reaches ~2.7:1 on near-black, so a dark page wants a
+   lighter accent set alongside this. */
+.pf-section.pf-theme-dark {
+  --pf-line: #2a2a33;
+  --pf-label: #8a8a96;
+}
+
+.pf-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .pf-sticky {
+    height: 100svh;
+  }
+}
+
+.pf-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: clamp(16px, 3vw, 40px);
+}
+
+.pf-canvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: block;
+  font-family: inherit;
+  /* Keeps the compact viewBox an actual crop rather than a hint. */
+  overflow: hidden;
+}
+
+/* ---------- connectors ---------- */
+
+.pf-link {
+  fill: none;
+  stroke: var(--pf-line);
+  stroke-width: 1.2;
+  transition: stroke 500ms var(--pf-ease);
+}
+
+.pf-link.is-active {
+  stroke: var(--pf-accent);
+}
+
+.pf-edge-base {
+  fill: none;
+  stroke: var(--pf-line);
+  stroke-width: 1.4;
+}
+
+.pf-edge-fill {
+  fill: none;
+  stroke: var(--pf-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.pf-edge-head {
+  fill: none;
+  stroke: var(--pf-accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.pf-particle {
+  fill: var(--pf-accent);
+}
+
+/* ---------- nodes ---------- */
+
+.pf-node-shape {
+  fill: none;
+  stroke: var(--pf-line);
+  stroke-width: 1.6;
+  transition:
+    fill 420ms var(--pf-ease),
+    stroke 420ms var(--pf-ease);
+}
+
+.pf-node-label {
+  fill: var(--pf-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  transition: fill 420ms var(--pf-ease);
+}
+
+.pf-node--spine .pf-node-label {
+  font-size: 17px;
+}
+
+.pf-node--tool .pf-node-label {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+/* Entry point: never activates, so it takes the label colour on its outline to
+   read as present rather than as a step still waiting to be reached. */
+.pf-node.is-entry .pf-node-shape {
+  stroke: var(--pf-label);
+}
+
+/* The step being approached: the filled state in outline form. */
+.pf-node.is-next .pf-node-shape {
+  stroke: var(--pf-accent);
+}
+
+.pf-node.is-next .pf-node-label {
+  fill: var(--pf-accent);
+}
+
+/* Filled. The stroke matches the fill rather than being removed, so the pill
+   renders at the same size as an unfilled one as it activates. */
+.pf-node.is-active .pf-node-shape {
+  fill: var(--pf-accent);
+  stroke: var(--pf-accent);
+}
+
+.pf-node.is-active .pf-node-label {
+  fill: var(--pf-on-accent);
+}
+
+/* ---------- reduced motion ---------- */
+
+/* No pinning and no runway: the section becomes an ordinary block that scrolls
+   past at its natural height, showing the fully activated diagram. */
+.pf-section.pf-static .pf-sticky {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+
+.pf-section.pf-static .pf-canvas {
+  flex: 0 0 auto;
+  height: auto;
+  max-width: 1040px;
+  max-height: calc(100vh - 80px);
+  margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-node-shape,
+  .pf-node-label,
+  .pf-link {
+    transition: none;
+  }
+}
+
+/* ---------- a11y ---------- */
+
+.pf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

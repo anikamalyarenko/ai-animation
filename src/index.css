@@ -1,0 +1,27 @@
+:root {
+  font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Transparent by default, so an iframe of this page composites over whatever
+   the host page has behind it. Both html and body have to be explicit: a
+   background on either one paints the canvas. `color-scheme` is deliberately
+   left unset — declaring it makes the browser paint an opaque canvas of its
+   own beneath the document.
+
+   Pass ?bg=<hex> to paint a ground instead. */
+html,
+body {
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  color: #1a1a1a;
+}
