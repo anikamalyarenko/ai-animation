@@ -9,12 +9,10 @@
   ],
   "headers": [
     {
-      "//": "Vite fingerprints every filename in assets/, so a stale one can never be served under a name that still resolves. Cache it forever.",
       "source": "/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
-      "//": "The HTML entries keep the fingerprinted asset names, so they must be revalidated on every request or a deploy would not reach anyone holding a cached copy.",
       "source": "/(.*).html",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     }

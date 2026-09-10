@@ -239,10 +239,15 @@ into any React project as-is.
 
 Vite, static output, no environment variables and no server code, so any static
 host works. `vercel.json` configures Vercel explicitly rather than leaning on
-framework detection: `npm run build` into `dist/`, clean URLs, and a cache
-policy that pins the fingerprinted files in `assets/` for a year while keeping
-the HTML entries revalidated, so a deploy actually reaches people already
-holding a cached copy.
+framework detection: `npm run build` into `dist/`, clean URLs, a redirect from
+the preview's old path, and a cache policy that pins the fingerprinted files in
+`assets/` for a year while keeping the HTML entries revalidated, so a deploy
+actually reaches people already holding a cached copy.
+
+Keep that file free of commentary. JSON has no comments, and Vercel validates
+`vercel.json` against a strict schema that rejects any property it does not
+define — a `"//"` key used as a comment fails the import with
+`should NOT have additional property '//'` before the build ever starts.
 
 Two pages ship at the site root:
 
