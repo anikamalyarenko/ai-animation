@@ -1,3 +1,9 @@
+> This repository holds two independent pieces:
+>
+> - **Process Flow** — the scroll-driven node-graph diagram documented below.
+> - **[AuroraBackground](src/AuroraBackground/README.md)** — a cursor-following
+>   blurred-blob background layer with film grain. Demo at `/aurora.html`.
+
 # Process Flow — scroll-driven node graph
 
 A product design process drawn as a node graph and animated by scroll position.
