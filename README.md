@@ -1,9 +1,10 @@
 > This repository holds two independent pieces:
 >
-> - **Process Flow** — the scroll-driven node-graph diagram documented below.
+> - **Process Flow** — the scroll-driven node-graph diagram documented below,
+>   served at `/process-flow`.
 > - **[AuroraBackground](src/AuroraBackground/README.md)** — a cursor-following
 >   blurred-blob background layer with film grain. Full-viewport by default, or
->   a fixed-size stage. Preview at `/aurora.html`, 1440x854.
+>   a fixed-size stage. Preview at `/`, 1440x854.
 >
 > Both build together with `npm run build` and deploy as one static site; see
 > [Deploying](#deploying).
@@ -247,11 +248,14 @@ Two pages ship at the site root:
 
 | Path | Page |
 | --- | --- |
-| `/` | Process Flow — the scroll-driven diagram |
-| `/aurora` | AuroraBackground — the 1440x854 preview |
+| `/` | AuroraBackground — the 1440x854 preview |
+| `/process-flow` | Process Flow — the scroll-driven diagram |
 
-To make the Aurora preview the root instead, swap the two entry filenames in
-`vite.config.js`.
+`/aurora`, the preview's path before it moved to the root, redirects there.
+
+The URL of a page in a Vite multi-page build is its entry filename, so the two
+are swapped by renaming `index.html` and `process-flow.html` and updating the
+`input` map in `vite.config.js` to match.
 
 ### From the dashboard
 

@@ -9,10 +9,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        // The existing ProcessFlow embed.
+        // The AuroraBackground preview, at the site root.
         main: entry('./index.html'),
-        // The AuroraBackground demo.
-        aurora: entry('./aurora.html'),
+        // The ProcessFlow embed, moved off the root but still served.
+        processFlow: entry('./process-flow.html'),
       },
     },
   },

@@ -174,8 +174,8 @@ of the page is eventually the worst case. Raising `intensity` or lightening
 
 ## Demo
 
-`aurora.html` at the repo root renders the fixed-size stage at 1440x854 and
-nothing else — no copy, no chrome. `npm run dev`, then open `/aurora.html`.
+`index.html` at the repo root renders the fixed-size stage at 1440x854 and
+nothing else — no copy, no chrome. `npm run dev`, then open `/`.
 
 Measured on that page: the layer box and the canvas box are both exactly
 1440x854 with zero gap on all four edges, the canvas buffer is 360x214 (the

@@ -4,6 +4,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/aurora", "destination": "/", "permanent": true }
+  ],
   "headers": [
     {
       "//": "Vite fingerprints every filename in assets/, so a stale one can never be served under a name that still resolves. Cache it forever.",
