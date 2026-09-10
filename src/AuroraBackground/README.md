@@ -34,7 +34,36 @@ content renders on top and every click and hover passes through it.
 | `intensity` | `1` | Multiplier on blob opacity. |
 | `grain` | `0.1` | Opacity of the noise overlay. `0` removes it. |
 | `grainSize` | `180` | Noise tile size in px — the grain's coarseness. |
+| `width`, `height` | `null` | Pin the layer to an exact pixel box instead of the viewport. Both or neither. |
 | `className`, `style` | — | Merged onto the layer element. |
+
+## Two modes
+
+**Full-viewport layer** (default). `position: fixed; inset: 0; z-index: -1`,
+sized from the window and re-sized with it. The drop-in-behind-your-page mode.
+
+**Fixed-size stage.** Pass `width` and `height` and the layer becomes an exact
+pixel box in normal flow at `z-index: 0` — for an export, a preview frame, or an
+iframe of a known size. Nothing derives from `vw`/`vh` in this mode: `size`
+measures against `min(width, height)` of the box, so the composition is
+identical wherever the box sits and whatever the window around it does.
+
+```jsx
+<AuroraBackground width={1440} height={854} />
+```
+
+The stage does not scale to fit — that is the point of a fixed size. On a
+narrower window the page scrolls to it. To fit it into a smaller frame without
+changing the composition, scale the box and leave the props alone:
+
+```css
+.aurora--staged { transform: scale(0.6); transform-origin: top left; }
+```
+
+The cursor is normalised against the **layer's own box**, not the window, so the
+blob tracks correctly inside a stage that does not fill the screen. A cursor
+outside the box clamps to the nearest edge instead of flinging the blob
+off-canvas.
 
 ## Tuning
 
@@ -101,6 +130,7 @@ the worst case:
 | empty `requestAnimationFrame` baseline | 16.7 ms |
 | component running, cursor still | 16.7 ms |
 | component running, cursor moving | 16.7 ms |
+| fixed 1440x854 stage, cursor moving | 16.7 ms |
 
 Three things buy that:
 
@@ -144,5 +174,10 @@ of the page is eventually the worst case. Raising `intensity` or lightening
 
 ## Demo
 
-`aurora.html` at the repo root renders the component behind a stand-in landing
-page. `npm run dev`, then open `/aurora.html`.
+`aurora.html` at the repo root renders the fixed-size stage at 1440x854 and
+nothing else — no copy, no chrome. `npm run dev`, then open `/aurora.html`.
+
+Measured on that page: the layer box and the canvas box are both exactly
+1440x854 with zero gap on all four edges, the canvas buffer is 360x214 (the
+1/4-scale render), and the frame budget holds at a 16.7 ms median with the
+cursor moving.

@@ -29,6 +29,26 @@
   --aurora-grain-size: 180px;
 }
 
+/*
+  Staged: an exact pixel box in normal flow instead of the viewport-fixed
+  layer. `width`/`height` come from the props as inline styles; everything the
+  fixed layer needs to escape the flow is undone here. z-index goes to 0 —
+  a staged layer is the content, not a backdrop, so it has nothing to sit
+  behind and negative z would only put it under its own parent's background.
+*/
+.aurora--staged {
+  position: relative;
+  inset: auto;
+  z-index: var(--aurora-z, 0);
+  flex: none;
+}
+
+/*
+  The canvas is rendered small and stretched to fill the box. `display: block`
+  kills the inline-element baseline gap that would otherwise leave a few px of
+  parent background showing below it — the difference between edge-to-edge and
+  nearly edge-to-edge.
+*/
 .aurora__canvas {
   display: block;
   width: 100%;

@@ -2,7 +2,11 @@
 >
 > - **Process Flow** — the scroll-driven node-graph diagram documented below.
 > - **[AuroraBackground](src/AuroraBackground/README.md)** — a cursor-following
->   blurred-blob background layer with film grain. Demo at `/aurora.html`.
+>   blurred-blob background layer with film grain. Full-viewport by default, or
+>   a fixed-size stage. Preview at `/aurora.html`, 1440x854.
+>
+> Both build together with `npm run build` and deploy as one static site; see
+> [Deploying](#deploying).
 
 # Process Flow — scroll-driven node graph
 
@@ -229,3 +233,39 @@ src/ProcessFlow/
 
 `ProcessFlow` has no dependencies beyond React, so the four files above drop
 into any React project as-is.
+
+## Deploying
+
+Vite, static output, no environment variables and no server code, so any static
+host works. `vercel.json` configures Vercel explicitly rather than leaning on
+framework detection: `npm run build` into `dist/`, clean URLs, and a cache
+policy that pins the fingerprinted files in `assets/` for a year while keeping
+the HTML entries revalidated, so a deploy actually reaches people already
+holding a cached copy.
+
+Two pages ship at the site root:
+
+| Path | Page |
+| --- | --- |
+| `/` | Process Flow — the scroll-driven diagram |
+| `/aurora` | AuroraBackground — the 1440x854 preview |
+
+To make the Aurora preview the root instead, swap the two entry filenames in
+`vite.config.js`.
+
+### From the dashboard
+
+1. [vercel.com/new](https://vercel.com/new), **Import Git Repository**,
+   `anikamalyarenko/ai-animation`.
+2. Leave every build setting alone. `vercel.json` already sets the framework,
+   build command and output directory, and the dashboard defers to it.
+3. **Deploy.** Every later push to `main` redeploys; pushes to other branches
+   get their own preview URL.
+
+### From the CLI
+
+```sh
+npx vercel login
+npx vercel link      # once, to attach this directory to a project
+npx vercel --prod
+```

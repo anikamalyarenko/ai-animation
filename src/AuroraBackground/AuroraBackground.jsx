@@ -102,6 +102,8 @@ const MAX_STRETCH = 0.9;
  */
 const SCALE = 4;
 
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
 export default function AuroraBackground({
   accent = '#3B2E7A',
   base = '#050505',
@@ -111,15 +113,24 @@ export default function AuroraBackground({
   intensity = 1,
   grain = 0.1,
   grainSize = 180,
+  width: fixedWidth = null,
+  height: fixedHeight = null,
   className = '',
   style,
 }) {
+  const layerRef = useRef(null);
   const canvasRef = useRef(null);
   const pointer = useRef({ x: 0.5, y: 0.42 });
 
+  // Give `width`/`height` to pin the layer to an exact pixel box instead of the
+  // viewport — a fixed-size export or preview stage. Omit both for the default
+  // full-viewport background layer.
+  const staged = Number.isFinite(fixedWidth) && Number.isFinite(fixedHeight);
+
   useEffect(() => {
+    const layer = layerRef.current;
     const canvas = canvasRef.current;
-    if (!canvas) return undefined;
+    if (!layer || !canvas) return undefined;
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
 
@@ -137,13 +148,30 @@ export default function AuroraBackground({
     let resizeRaf = 0;
     let last = 0;
 
+    // The layer's box in viewport coordinates, cached because it is read on
+    // every pointer event and a getBoundingClientRect there would force layout.
+    let box = { left: 0, top: 0, width: 1, height: 1 };
+
+    const measure = () => {
+      const r = layer.getBoundingClientRect();
+      box = {
+        left: r.left,
+        top: r.top,
+        width: r.width || 1,
+        height: r.height || 1,
+      };
+    };
+
     const resize = () => {
       // Deliberately ignores devicePixelRatio: the canvas is a blur source, and
-      // CSS stretches it to the viewport either way.
-      width = Math.max(1, Math.round(window.innerWidth / SCALE));
-      height = Math.max(1, Math.round(window.innerHeight / SCALE));
+      // CSS stretches it to its box either way.
+      const cssWidth = staged ? fixedWidth : window.innerWidth;
+      const cssHeight = staged ? fixedHeight : window.innerHeight;
+      width = Math.max(1, Math.round(cssWidth / SCALE));
+      height = Math.max(1, Math.round(cssHeight / SCALE));
       canvas.width = width;
       canvas.height = height;
+      measure();
     };
 
     const draw = (time) => {
@@ -236,11 +264,16 @@ export default function AuroraBackground({
     };
 
     const onPointerMove = (event) => {
+      // Normalised against the layer's own box rather than the window, so a
+      // staged layer tracks the cursor inside its 1440x854 frame instead of
+      // inside the browser window. Clamped, so a cursor outside the stage parks
+      // the blob against the nearest edge instead of flinging it off-canvas.
+      //
       // No throttle: a ref write per event is cheaper than any throttle would
-      // be, and the rAF loop is the only reader, so extra events cost one
-      // assignment each and never a repaint.
-      pointer.current.x = event.clientX / window.innerWidth;
-      pointer.current.y = event.clientY / window.innerHeight;
+      // be, and the rAF loop is the only reader, so extra events cost two
+      // assignments each and never a repaint.
+      pointer.current.x = clamp01((event.clientX - box.left) / box.width);
+      pointer.current.y = clamp01((event.clientY - box.top) / box.height);
     };
 
     const onPointerLeave = () => {
@@ -254,6 +287,16 @@ export default function AuroraBackground({
         resizeRaf = 0;
         resize();
         if (reduced) drawStatic();
+      });
+    };
+
+    // A staged layer is in normal flow, so scrolling moves it under the cursor.
+    // The viewport-fixed default never moves, so it does not pay for this.
+    const onScroll = () => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        measure();
       });
     };
 
@@ -295,6 +338,7 @@ export default function AuroraBackground({
     window.addEventListener('pointerdown', onPointerMove, { passive: true });
     document.addEventListener('pointerleave', onPointerLeave);
     window.addEventListener('resize', onResize);
+    if (staged) window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
     raf = requestAnimationFrame(step);
 
@@ -303,16 +347,23 @@ export default function AuroraBackground({
       window.removeEventListener('pointerdown', onPointerMove);
       document.removeEventListener('pointerleave', onPointerLeave);
       window.removeEventListener('resize', onResize);
+      if (staged) window.removeEventListener('scroll', onScroll);
       document.removeEventListener('visibilitychange', onVisibility);
       if (raf) cancelAnimationFrame(raf);
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
     };
-  }, [accent, base, size, blur, ease, intensity]);
+  }, [accent, base, size, blur, ease, intensity, staged, fixedWidth, fixedHeight]);
 
   return (
     <div
-      className={`aurora${className ? ` ${className}` : ''}`}
-      style={{ '--aurora-grain': grain, '--aurora-grain-size': `${grainSize}px`, ...style }}
+      ref={layerRef}
+      className={`aurora${staged ? ' aurora--staged' : ''}${className ? ` ${className}` : ''}`}
+      style={{
+        '--aurora-grain': grain,
+        '--aurora-grain-size': `${grainSize}px`,
+        ...(staged ? { width: `${fixedWidth}px`, height: `${fixedHeight}px` } : null),
+        ...style,
+      }}
       aria-hidden="true"
     >
       <canvas ref={canvasRef} className="aurora__canvas" />
